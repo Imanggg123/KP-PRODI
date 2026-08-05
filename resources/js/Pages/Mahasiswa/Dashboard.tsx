@@ -98,48 +98,251 @@ export default function Dashboard({ userName, userProdi, userAngkatan, userKonse
                 </div>
             </div>
 
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
+                <div className="bg-white rounded-xl border p-5">
+                    <p className="text-sm text-gray-500">
+                        Status KP
+                    </p>
+
+                    <h2 className="text-2xl font-bold">
+                        {statusInfo.label}
+                    </h2>
+                </div>
+
+                <div className="bg-white rounded-xl border p-5">
+                    <p className="text-sm text-gray-500">
+                        Logbook
+                    </p>
+
+                    <h2 className="text-2xl font-bold">
+                        {logbookCount}/{logbookTarget}
+                    </h2>
+                </div>
+
+                <div className="bg-white rounded-xl border p-5">
+                    <p className="text-sm text-gray-500">
+                        Progress
+                    </p>
+
+                    <h2 className="text-2xl font-bold">
+                        {Math.round((logbookCount/logbookTarget)*100)}%
+                    </h2>
+                </div>
+
+                <div className="bg-white rounded-xl border p-5">
+                    <p className="text-sm text-gray-500">
+                        Notifikasi
+                    </p>
+
+                    <h2 className="text-2xl font-bold">
+                        {notifications.length}
+                    </h2>
+                </div>
+
+            </div>
+
+            <div className="bg-white rounded-xl border p-6">
+
+                <div className="flex justify-between mb-2">
+
+                    <span>Progress Logbook</span>
+
+                    <span>
+                        {Math.round((logbookCount/logbookTarget)*100)}%
+                    </span>
+
+                </div>
+
+                <div className="w-full h-3 bg-gray-200 rounded-full">
+
+                    <div
+                        className="h-3 bg-primary rounded-full"
+                        style={{
+                            width: `${Math.round((logbookCount/logbookTarget)*100)}%`
+                        }}
+                    />
+
+                </div>
+                    
+            </div>
+
             {/* Infografis Tahapan KP */}
             <div className="bg-white border border-outline-variant rounded-xl p-6 shadow-sm space-y-6">
                 <div className="flex items-center space-x-2">
                     <span className="w-2 h-6 bg-primary rounded-full"></span>
-                    <h3 className="text-title-lg font-bold text-on-surface">Infografis Tahapan KP</h3>
+                    <h3 className="text-title-lg font-bold text-on-surface">
+                        Infografis Tahapan KP
+                    </h3>
                 </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-6">
+
+                    {/* Tahap 1 */}
                     <div className="flex flex-col items-center text-center group">
-                        <div className="w-12 h-12 rounded-full bg-primary-container text-white flex items-center justify-center mb-3 shadow-sm group-hover:scale-105 transition-transform">
+                        <div
+                            className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 shadow-sm transition-transform group-hover:scale-105 ${
+                                currentStep >= 1
+                                    ? 'bg-primary text-white'
+                                    : 'bg-white border border-primary text-primary'
+                            }`}
+                        >
                             <Edit3 className="w-6 h-6" />
                         </div>
-                        <h4 className="text-label-sm text-primary font-bold">Tahap 1</h4>
-                        <p className="text-body-xs text-secondary mt-1 px-2 font-medium">Pengajuan & Persetujuan Judul</p>
+                        
+                        <h4
+                            className={`text-label-sm font-bold ${
+                                currentStep >= 1
+                                    ? 'text-primary'
+                                    : 'text-gray-400'
+                            }`}
+                        >
+                            Tahap 1
+                        </h4>
+                        
+                        <p
+                            className={`text-body-xs mt-1 px-2 font-medium ${
+                                currentStep >= 1
+                                    ? 'text-secondary'
+                                    : 'text-gray-400'
+                            }`}
+                        >
+                            Pengajuan & Persetujuan Judul
+                        </p>
                     </div>
+                        
+                    {/* Tahap 2 */}
                     <div className="flex flex-col items-center text-center group">
-                        <div className="w-12 h-12 rounded-full bg-white border border-primary text-primary flex items-center justify-center mb-3 shadow-sm group-hover:scale-105 transition-transform">
+                        <div
+                            className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 shadow-sm transition-transform group-hover:scale-105 ${
+                                currentStep >= 2
+                                    ? 'bg-primary text-white'
+                                    : 'bg-white border border-primary text-primary'
+                            }`}
+                        >
                             <Mail className="w-6 h-6" />
                         </div>
-                        <h4 className="text-label-sm text-primary font-bold">Tahap 2</h4>
-                        <p className="text-body-xs text-secondary mt-1 px-2 font-medium">Penerbitan Surat Pengantar</p>
+                        
+                        <h4
+                            className={`text-label-sm font-bold ${
+                                currentStep >= 2
+                                    ? 'text-primary'
+                                    : 'text-gray-400'
+                            }`}
+                        >
+                            Tahap 2
+                        </h4>
+                        
+                        <p
+                            className={`text-body-xs mt-1 px-2 font-medium ${
+                                currentStep >= 2
+                                    ? 'text-secondary'
+                                    : 'text-gray-400'
+                            }`}
+                        >
+                            Penerbitan Surat Pengantar
+                        </p>
                     </div>
+                        
+                    {/* Tahap 3 */}
                     <div className="flex flex-col items-center text-center group">
-                        <div className="w-12 h-12 rounded-full bg-white border border-primary text-primary flex items-center justify-center mb-3 shadow-sm group-hover:scale-105 transition-transform">
+                        <div
+                            className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 shadow-sm transition-transform group-hover:scale-105 ${
+                                currentStep >= 3
+                                    ? 'bg-primary text-white'
+                                    : 'bg-white border border-primary text-primary'
+                            }`}
+                        >
                             <Briefcase className="w-6 h-6" />
                         </div>
-                        <h4 className="text-label-sm text-primary font-bold">Tahap 3</h4>
-                        <p className="text-body-xs text-secondary mt-1 px-2 font-medium">Pelaksanaan di Instansi</p>
+                        
+                        <h4
+                            className={`text-label-sm font-bold ${
+                                currentStep >= 3
+                                    ? 'text-primary'
+                                    : 'text-gray-400'
+                            }`}
+                        >
+                            Tahap 3
+                        </h4>
+                        
+                        <p
+                            className={`text-body-xs mt-1 px-2 font-medium ${
+                                currentStep >= 3
+                                    ? 'text-secondary'
+                                    : 'text-gray-400'
+                            }`}
+                        >
+                            Pelaksanaan di Instansi
+                        </p>
                     </div>
+                        
+                    {/* Tahap 4 */}
                     <div className="flex flex-col items-center text-center group">
-                        <div className="w-12 h-12 rounded-full bg-white border border-primary text-primary flex items-center justify-center mb-3 shadow-sm group-hover:scale-105 transition-transform">
+                        <div
+                            className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 shadow-sm transition-transform group-hover:scale-105 ${
+                                currentStep >= 4
+                                    ? 'bg-primary text-white'
+                                    : 'bg-white border border-primary text-primary'
+                            }`}
+                        >
                             <FileText className="w-6 h-6" />
                         </div>
-                        <h4 className="text-label-sm text-primary font-bold">Tahap 4</h4>
-                        <p className="text-body-xs text-secondary mt-1 px-2 font-medium">Penyusunan Laporan Akhir</p>
+                        
+                        <h4
+                            className={`text-label-sm font-bold ${
+                                currentStep >= 4
+                                    ? 'text-primary'
+                                    : 'text-gray-400'
+                            }`}
+                        >
+                            Tahap 4
+                        </h4>
+                        
+                        <p
+                            className={`text-body-xs mt-1 px-2 font-medium ${
+                                currentStep >= 4
+                                    ? 'text-secondary'
+                                    : 'text-gray-400'
+                            }`}
+                        >
+                            Penyusunan Laporan Akhir
+                        </p>
                     </div>
+                        
+                    {/* Tahap 5 */}
                     <div className="flex flex-col items-center text-center group">
-                        <div className="w-12 h-12 rounded-full bg-white border border-primary text-primary flex items-center justify-center mb-3 shadow-sm group-hover:scale-105 transition-transform">
+                        <div
+                            className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 shadow-sm transition-transform group-hover:scale-105 ${
+                                currentStep >= 5
+                                    ? 'bg-primary text-white'
+                                    : 'bg-white border border-primary text-primary'
+                            }`}
+                        >
                             <Verified className="w-6 h-6" />
                         </div>
-                        <h4 className="text-label-sm text-primary font-bold">Tahap 5</h4>
-                        <p className="text-body-xs text-secondary mt-1 px-2 font-medium">Sidang & Penilaian Akhir</p>
+                        
+                        <h4
+                            className={`text-label-sm font-bold ${
+                                currentStep >= 5
+                                    ? 'text-primary'
+                                    : 'text-gray-400'
+                            }`}
+                        >
+                            Tahap 5
+                        </h4>
+                        
+                        <p
+                            className={`text-body-xs mt-1 px-2 font-medium ${
+                                currentStep >= 5
+                                    ? 'text-secondary'
+                                    : 'text-gray-400'
+                            }`}
+                        >
+                            Sidang & Penilaian Akhir
+                        </p>
                     </div>
+                        
                 </div>
             </div>
 
@@ -323,5 +526,45 @@ export default function Dashboard({ userName, userProdi, userAngkatan, userKonse
         </div>
     );
 }
+
+<div className="bg-white border rounded-xl p-6">
+
+    <h3 className="text-lg font-bold mb-4">
+        Quick Action
+    </h3>
+
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+        <Link
+            href={route('mahasiswa.pendaftaran')}
+            className="p-4 border rounded-lg hover:bg-gray-50"
+        >
+            Daftar KP
+        </Link>
+
+        <Link
+            href={route('mahasiswa.proposal')}
+            className="p-4 border rounded-lg hover:bg-gray-50"
+        >
+            Upload Proposal
+        </Link>
+
+        <Link
+            href={route('mahasiswa.logbook')}
+            className="p-4 border rounded-lg hover:bg-gray-50"
+        >
+            Isi Logbook
+        </Link>
+
+        <Link
+            href={route('mahasiswa.surat-pengantar')}
+            className="p-4 border rounded-lg hover:bg-gray-50"
+        >
+            Surat Pengantar
+        </Link>
+
+    </div>
+
+</div>
 
 Dashboard.layout = (page: React.ReactNode) => <MahasiswaLayout>{page}</MahasiswaLayout>;

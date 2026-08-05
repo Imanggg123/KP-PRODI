@@ -16,6 +16,7 @@ export default function MahasiswaLayout({ children }: PropsWithChildren) {
         { href: '/mahasiswa/status-pengajuan', label: 'Status Pengajuan', icon: ClipboardCheck },
         { href: '/mahasiswa/surat-pengantar', label: 'Surat Pengantar', icon: FileText },
         { href: '/mahasiswa/proposal', label: 'Proposal', icon: File },
+        { href: '/mahasiswa/logbook', label: 'Logbook', icon: BookOpen },
         { href: '/mahasiswa/berita-acara', label: 'Berita Acara', icon: FileClock },
         { href: '/mahasiswa/penilaian-akhir', label: 'Penilaian Akhir', icon: Award },
     ];
