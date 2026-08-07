@@ -23,7 +23,7 @@ class MahasiswaDashboardController extends Controller
 
         // Get the latest pendaftaran with relations
         $pendaftaran = Pendaftaran::where('mahasiswa_id', $user->id)
-            ->with(['instansi', 'dosenPembimbing', 'proposals', 'suratPengantar'])
+            ->with(['instansi', 'dosenPembimbing', 'proposals', 'suratPengantar', 'logbooks', 'beritaAcara', 'nilaiAkhir'])
             ->latest()
             ->first();
 
@@ -72,47 +72,29 @@ class MahasiswaDashboardController extends Controller
         ->count();
         if ($pendaftaran) {
 
-            $logbookCount = Logbook::where(
-                'pendaftaran_id',
-                $pendaftaran->id
-            )->count();
+            $logbookCount = $pendaftaran->logbooks->count();
 
-            $totalProposal = Proposal::where(
-                'pendaftaran_id',
-                $pendaftaran->id
-            )->count();
+            $totalProposal = $pendaftaran->proposals->count();
 
-            $proposal = Proposal::where(
-                'pendaftaran_id',
-                $pendaftaran->id
-            )->latest()->first();
+            $proposal = $pendaftaran->proposals->sortByDesc('created_at')->first();
 
             if ($proposal) {
                 $proposalStatus = $proposal->status;
             }
 
-            $surat = SuratPengantar::where(
-                'pendaftaran_id',
-                $pendaftaran->id
-            )->first();
+            $surat = $pendaftaran->suratPengantar;
 
             if ($surat) {
                 $suratStatus = $surat->status;
             }
 
-            $berita = BeritaAcara::where(
-                'pendaftaran_id',
-                $pendaftaran->id
-            )->first();
+            $berita = $pendaftaran->beritaAcara;
 
             if ($berita) {
                 $beritaStatus = 'Sudah Upload';
             }
 
-            $nilai = NilaiAkhir::where(
-                'pendaftaran_id',
-                $pendaftaran->id
-            )->first();
+            $nilai = $pendaftaran->nilaiAkhir;
 
             if ($nilai) {
                 $nilaiAkhir = $nilai->nilai_akhir;
@@ -142,6 +124,68 @@ class MahasiswaDashboardController extends Controller
             'beritaStatus' => $beritaStatus,
             'nilaiAkhir' => $nilaiAkhir,
             'unreadNotification' => $unreadNotification,
+            'statistik' => [
+                'pendaftaran' => $pendaftaran ? 1 : 0,
+                'proposal' => $totalProposal,
+                'logbook' => $logbookCount,
+                'surat' => $surat ? 1 : 0,
+                'berita' => $berita ? 1 : 0,
+                'nilai' => $nilaiAkhir,
+            ],
+            'quickActions' => [
+                [
+                    'title' => 'Daftar KP',
+                    'url' => route('mahasiswa.pendaftaran'),
+                    'active' => true,
+                ],
+                [
+                    'title' => 'Upload Proposal',
+                    'url' => route('mahasiswa.proposal'),
+                    'active' => $pendaftaran != null,
+                ],
+                [
+                    'title' => 'Isi Logbook',
+                    'url' => route('mahasiswa.logbook'),
+                    'active' => $pendaftaran != null,
+                ],
+                [
+                    'title' => 'Download Surat',
+                    'url' => route('mahasiswa.surat-pengantar'),
+                    'active' => $surat != null,
+                ],
+            ],
+            'timeline' => [
+                [
+                    'title' => 'Pendaftaran',
+                    'done' => $pendaftaran != null,
+                ],
+                [
+                    'title' => 'Verifikasi TU',
+                    'done' => in_array($pendaftaran?->status, [
+                        'disetujui_tu',
+                        'surat_terbit',
+                        'diterima_instansi',
+                        'aktif',
+                        'selesai',
+                    ]),
+                ],
+                [
+                    'title' => 'Surat Pengantar',
+                    'done' => $surat != null,
+                ],
+                [
+                    'title' => 'Proposal',
+                    'done' => $totalProposal > 0,
+                ],
+                [
+                    'title' => 'Pelaksanaan KP',
+                    'done' => $logbookCount > 0,
+                ],
+                [
+                    'title' => 'Selesai',
+                    'done' => $nilaiAkhir != null,
+                ],
+            ],
             ]);
         }
 

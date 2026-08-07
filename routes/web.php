@@ -4,7 +4,7 @@ use App\Http\Controllers\Mahasiswa\MahasiswaDashboardController;
 use App\Http\Controllers\Mahasiswa\MahasiswaPendaftaranController;
 use App\Http\Controllers\Mahasiswa\MahasiswaProfilController;
 use App\Http\Controllers\Mahasiswa\MahasiswaProposalController;
-
+use App\Http\Controllers\TU\TUVerifikasiController;
 use App\Http\Controllers\Mahasiswa\MahasiswaLogbookController;
 
 use App\Http\Controllers\ProfileController;
@@ -80,6 +80,19 @@ Route::middleware(['auth', 'role:mahasiswa'])
         
         Route::get('/surat-pengantar/download',[App\Http\Controllers\Mahasiswa\MahasiswaSuratPengantarController::class,'download'])
             ->name('surat-pengantar.download');
+
+        
+        // =========================
+        //LOGBOOK
+        // =========================
+        Route::get('/logbook/create', [MahasiswaLogbookController::class, 'create'])
+            ->name('logbook.create');
+
+        Route::post('/logbook', [MahasiswaLogbookController::class, 'store'])
+            ->name('logbook.store');
+            
+        Route::get('/logbook', [MahasiswaLogbookController::class, 'index'])
+            ->name('logbook');
         // =========================
         // SURAT BALASAN
         // =========================
