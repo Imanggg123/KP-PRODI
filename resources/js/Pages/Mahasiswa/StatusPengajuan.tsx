@@ -15,6 +15,55 @@ const statusText: Record<string, string> = {
     selesai: "Selesai",
 };
 
+const getStatusTheme = (status: string) => {
+    switch (status) {
+        case 'aktif': // Kerja Praktik Berlangsung
+            return {
+                borderContainer: 'border-amber-200 bg-amber-50/20',
+                leftBar: 'bg-amber-500',
+                iconBg: 'bg-amber-100',
+                iconText: 'text-amber-700',
+                titleText: 'text-amber-850',
+                badgeBg: 'bg-amber-100',
+                badgeText: 'text-amber-800',
+                icon: Clock,
+            };
+        case 'selesai': // Selesai
+            return {
+                borderContainer: 'border-green-200 bg-green-50/20',
+                leftBar: 'bg-green-500',
+                iconBg: 'bg-green-100',
+                iconText: 'text-green-700',
+                titleText: 'text-green-800',
+                badgeBg: 'bg-green-100',
+                badgeText: 'text-green-800',
+                icon: CheckCircle,
+            };
+        case 'perlu_perbaikan':
+            return {
+                borderContainer: 'border-error-container bg-error-container/10',
+                leftBar: 'bg-error',
+                iconBg: 'bg-error-container',
+                iconText: 'text-error',
+                titleText: 'text-error',
+                badgeBg: 'bg-error-container',
+                badgeText: 'text-error',
+                icon: AlertTriangle,
+            };
+        default: // draft, diajukan, verifikasi_tu, disetujui_tu, dll.
+            return {
+                borderContainer: 'border-blue-200 bg-blue-50/20',
+                leftBar: 'bg-blue-500',
+                iconBg: 'bg-blue-100',
+                iconText: 'text-blue-700',
+                titleText: 'text-blue-800',
+                badgeBg: 'bg-blue-100',
+                badgeText: 'text-blue-800',
+                icon: Clock,
+            };
+    }
+};
+
 export default function StatusPengajuan() {
   const { pendaftaran } = usePage().props as any;
   if (!pendaftaran) {
@@ -31,7 +80,11 @@ export default function StatusPengajuan() {
             </div>
         </div>
     );
-}
+  }
+
+  const theme = getStatusTheme(pendaftaran.status);
+  const StatusIcon = theme.icon;
+
   return (
     <div className="flex-1 p-6 max-w-[1280px] mx-auto w-full">
       <div className="mb-8">
@@ -50,15 +103,15 @@ export default function StatusPengajuan() {
       <div className="grid grid-cols-12 gap-6">
         {/* Status Alert Card */}
         <div className="col-span-12">
-          <div className="bg-white border-2 border-error-container rounded-xl p-6 flex items-start gap-4 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-2 h-full bg-error"></div>
-            <div className="bg-error-container text-error p-3 rounded-full flex-shrink-0">
-              <AlertTriangle className="w-6 h-6" />
+          <div className={`bg-white border-2 ${theme.borderContainer} rounded-xl p-6 flex items-start gap-4 shadow-sm relative overflow-hidden`}>
+            <div className={`absolute top-0 left-0 w-2 h-full ${theme.leftBar}`}></div>
+            <div className={`${theme.iconBg} ${theme.iconText} p-3 rounded-full flex-shrink-0`}>
+              <StatusIcon className="w-6 h-6" />
             </div>
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-title-lg text-error font-bold">{statusText[pendaftaran.status] ?? pendaftaran.status}</h4>
-                <span className="px-4 py-1 bg-error-container text-error text-label-sm font-bold rounded-full uppercase tracking-wider">{statusText[pendaftaran.status] ?? pendaftaran.status}</span>
+                <h4 className={`text-title-lg ${theme.titleText} font-bold`}>{statusText[pendaftaran.status] ?? pendaftaran.status}</h4>
+                <span className={`px-4 py-1 ${theme.badgeBg} ${theme.badgeText} text-label-sm font-bold rounded-full uppercase tracking-wider`}>{statusText[pendaftaran.status] ?? pendaftaran.status}</span>
               </div>
               <div className="p-4 bg-surface-container-low rounded-lg border border-outline-variant/30">
                 <p className="text-label-md text-on-surface mb-1">Catatan Admin Akademik/Prodi:</p>
@@ -117,8 +170,8 @@ export default function StatusPengajuan() {
                       <p className="text-body-md font-medium text-on-surface">Status Pengajuan</p>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-error-container text-error rounded-full text-label-sm font-bold">
-                        <span className="w-2 h-2 rounded-full bg-error"></span>
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 ${theme.badgeBg} ${theme.badgeText} rounded-full text-label-sm font-bold`}>
+                        <span className={`w-2 h-2 rounded-full ${theme.leftBar}`}></span>
                         {statusText[pendaftaran.status] ?? pendaftaran.status}
                       </span>
                     </td>
