@@ -10,20 +10,14 @@ interface Student {
   status: 'Sedang KP' | 'Selesai KP';
 }
 
-const INITIAL_STUDENTS: Student[] = [
-  { no: 1, nim: '20041110001', name: 'Budi Santoso', semester: 'Genap 2022/2023', status: 'Sedang KP' },
-  { no: 2, nim: '20041110002', name: 'Siti Aminah', semester: 'Genap 2022/2023', status: 'Selesai KP' },
-  { no: 3, nim: '20041110003', name: 'Ahmad Dahlan', semester: 'Genap 2022/2023', status: 'Sedang KP' },
-  { no: 4, nim: '20041110004', name: 'Diana Fitri', semester: 'Genap 2022/2023', status: 'Selesai KP' },
-  { no: 5, nim: '20041110005', name: 'Eko Prabowo', semester: 'Genap 2022/2023', status: 'Sedang KP' },
-  { no: 6, nim: '20041110012', name: 'Rian Hidayat', semester: 'Ganjil 2023/2024', status: 'Sedang KP' },
-  { no: 7, nim: '20041110015', name: 'Indah Lestari', semester: 'Ganjil 2023/2024', status: 'Selesai KP' },
-];
+interface Props {
+  initialStudents: Student[];
+}
 
-export default function Students() {
+export default function Students({ initialStudents = [] }: Props) {
   const [selectedSemester, setSelectedSemester] = useState('Genap 2022/2023');
   const [searchTerm, setSearchTerm] = useState('');
-  const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
+  const [students, setStudents] = useState<Student[]>(initialStudents);
 
   // Filter students based on search and semester
   const filteredStudents = students.filter(student => {

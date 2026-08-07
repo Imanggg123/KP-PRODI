@@ -1,253 +1,285 @@
 import InstansiLayout from '@/Layouts/InstansiLayout';
 import { useState } from 'react';
-import { Filter, Download, Clock, CheckCircle2, MessageSquare, Check, User2, ChevronDown, Star, AlertCircle } from 'lucide-react';
+import { useForm } from '@inertiajs/react';
+import { CheckCircle2, XCircle, FileText, ImageIcon, X, AlertCircle } from 'lucide-react';
+import Modal from '@/Components/Modal';
 
-const mockInterns = [
-  { id: 1, name: 'Budi Santoso', nim: '120140123', department: 'Divisi IT', avatarInitials: 'BS' },
-  { id: 2, name: 'Siti Nurhaliza', nim: '120140156', department: 'Divisi Marketing', avatarInitials: 'SN' },
-];
+interface Mahasiswa {
+  name: string;
+  nim: string;
+}
 
-const mockLogbookEntries = [
-  {
-    id: 1,
-    title: 'Setup Environment Development',
-    date: '15 Okt 2023',
-    time: '08:00 - 17:00',
-    status: 'Disetujui',
-    description: 'Melakukan instalasi tools development (VS Code, Node.js, Docker) dan konfigurasi environment project internal perusahaan.',
-    feedback: 'Kerjakan dengan baik, pastikan semua tools sudah berjalan lancar sebelum mulai development.',
-    rating: 4,
-  },
-  {
-    id: 2,
-    title: 'Implementasi Modul Autentikasi',
-    date: '18 Okt 2023',
-    time: '08:00 - 17:00',
-    status: 'Disetujui',
-    description: 'Mengembangkan fitur login, register, dan reset password menggunakan framework Laravel dengan integrasi OAuth2.',
-    feedback: 'Implementasi sudah sesuai standar perusahaan. Perhatikan error handling-nya.',
-    rating: 5,
-  },
-  {
-    id: 3,
-    title: 'Pengujian API Endpoints',
-    date: '22 Okt 2023',
-    time: '08:00 - 17:00',
-    status: 'Menunggu',
-    description: 'Membuat unit test dan integration test untuk seluruh endpoint API yang sudah dikembangkan pada sprint pertama.',
-    imageUrl: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=2070&auto=format&fit=crop',
-  },
-  {
-    id: 4,
-    title: 'Desain UI Dashboard Analytics',
-    date: '25 Okt 2023',
-    time: '08:00 - 12:00',
-    status: 'Menunggu',
-    description: 'Membuat wireframe dan prototype hi-fi untuk dashboard analytics menggunakan Figma sesuai design system perusahaan.',
-  },
-];
+interface Logbook {
+  id: number;
+  mahasiswa: Mahasiswa;
+  tanggal: string;
+  jam_mulai: string | null;
+  jam_selesai: string | null;
+  deskripsi: string;
+  path_foto: string | null;
+  status_instansi: string;
+  catatan_instansi: string | null;
+}
 
-export default function LogbookScreen() {
-  const [selectedIntern, setSelectedIntern] = useState(mockInterns[0]);
+interface Props {
+  logbooks: Logbook[];
+  error?: string;
+}
 
-  const approvedCount = mockLogbookEntries.filter(e => e.status === 'Disetujui').length;
-  const pendingCount = mockLogbookEntries.filter(e => e.status === 'Menunggu').length;
-  const totalCount = mockLogbookEntries.length;
+export default function InstansiLogbookScreen({ logbooks, error }: Props) {
+  const [selectedLogbook, setSelectedLogbook] = useState<Logbook | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const { data, setData, put, processing, reset, errors } = useForm({
+    status_instansi: 'disetujui',
+    catatan_instansi: '',
+  });
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[70vh] gap-4">
+        <AlertCircle size={64} className="text-error" />
+        <h2 className="text-xl font-display font-semibold text-on-surface">Akses Ditolak</h2>
+        <p className="text-secondary text-center max-w-md">{error}</p>
+      </div>
+    );
+  }
+
+  const openValidationModal = (logbook: Logbook) => {
+    setSelectedLogbook(logbook);
+    setData({
+      status_instansi: logbook.status_instansi === 'menunggu' ? 'disetujui' : logbook.status_instansi,
+      catatan_instansi: logbook.catatan_instansi || '',
+    });
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setTimeout(() => {
+      setSelectedLogbook(null);
+      reset();
+    }, 200);
+  };
+
+  const submitValidation = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedLogbook) return;
+
+    put(route('instansi.logbook.update', selectedLogbook.id), {
+      onSuccess: () => {
+        closeModal();
+      },
+    });
+  };
+
+  const formatStatus = (status: string) => {
+    switch (status) {
+      case 'menunggu': return { label: 'Menunggu', color: 'bg-surface-variant text-on-surface-variant border-outline-variant' };
+      case 'disetujui': return { label: 'Disetujui', color: 'bg-primary-container text-on-primary-container border-primary-container' };
+      case 'revisi': return { label: 'Revisi', color: 'bg-error-container text-on-error-container border-error-container' };
+      default: return { label: status, color: 'bg-surface text-on-surface border-outline' };
+    }
+  };
 
   return (
-    <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full p-6 md:p-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-display font-semibold text-on-surface">Monitoring</h1>
-          <p className="text-sm text-on-surface-variant mt-1">Pantau aktivitas harian mahasiswa KP di perusahaan Anda.</p>
-        </div>
-        <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-outline-variant text-on-surface rounded-lg hover:bg-surface-high transition-colors text-sm font-medium">
-            <Filter className="w-4 h-4" />
-            Filter
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg hover:opacity-90 transition-opacity text-sm font-medium shadow-sm">
-            <Download className="w-4 h-4" />
-            Ekspor PDF
-          </button>
-        </div>
+    <div className="flex flex-col gap-6 p-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-display font-semibold text-on-surface">Monitoring Kegiatan</h1>
+        <p className="text-sm text-on-surface-variant mt-1">Pantau dan validasi catatan aktivitas harian mahasiswa magang di instansi Anda.</p>
       </div>
 
-      {/* Intern Selector */}
-      <div className="bg-surface-lowest rounded-xl border border-outline-variant p-5 shadow-sm">
-        <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3 block">Pilih Mahasiswa</label>
-        <div className="flex flex-wrap gap-3">
-          {mockInterns.map((intern) => (
-            <button
-              key={intern.id}
-              onClick={() => setSelectedIntern(intern)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg border transition-all duration-200 active:scale-95 ${
-                selectedIntern.id === intern.id
-                  ? 'border-primary bg-primary-fixed text-primary shadow-sm'
-                  : 'border-outline-variant text-on-surface-variant hover:bg-surface-high'
-              }`}
-            >
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center font-display font-bold text-sm ${
-                selectedIntern.id === intern.id
-                  ? 'bg-primary text-on-primary'
-                  : 'bg-surface-high text-on-surface-variant'
-              }`}>
-                {intern.avatarInitials}
-              </div>
-              <div className="text-left">
-                <div className="text-sm font-semibold">{intern.name}</div>
-                <div className="text-xs opacity-75">{intern.department}</div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Stats Bento */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-surface-lowest p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col">
-          <span className="text-[10px] font-bold text-on-surface-variant mb-1 uppercase tracking-wider">Total Entri</span>
-          <span className="text-4xl font-display text-primary font-bold">{totalCount}</span>
-          <div className="mt-4 h-1 w-full bg-surface-high rounded-full overflow-hidden">
-            <div className="h-full bg-primary transition-all duration-500" style={{ width: `${(approvedCount / Math.max(totalCount, 1)) * 100}%` }}></div>
-          </div>
-        </div>
-        <div className="bg-surface-lowest p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col">
-          <span className="text-[10px] font-bold text-on-surface-variant mb-1 uppercase tracking-wider">Menunggu Persetujuan</span>
-          <span className="text-4xl font-display text-error font-bold">{pendingCount}</span>
-          <div className="mt-4 flex gap-2">
-            {pendingCount > 0 && (
-              <span className="px-2 py-1 bg-error-container text-on-error-container text-xs font-medium rounded-md flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" /> Perlu Tindakan
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="bg-surface-lowest p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col">
-          <span className="text-[10px] font-bold text-on-surface-variant mb-1 uppercase tracking-wider">Disetujui</span>
-          <span className="text-4xl font-display text-on-surface font-bold">{approvedCount}</span>
-          <div className="mt-4 flex gap-2">
-            <span className="px-2 py-1 bg-secondary-container text-on-secondary-container text-xs font-medium rounded-md">
-              {totalCount > 0 ? Math.round((approvedCount / totalCount) * 100) : 0}% Selesai
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Timeline */}
-      <div className="mt-6 space-y-8 relative before:absolute before:inset-0 before:ml-5 md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-outline-variant">
-        {mockLogbookEntries.map((entry, index) => (
-          <div key={entry.id} className={`relative flex items-start md:items-center justify-between md:justify-normal ${index % 2 !== 0 ? 'md:flex-row-reverse' : ''} group`}>
-            
-            {/* Icon Marker */}
-            <div className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-surface-lowest shadow-sm shrink-0 md:order-1 z-10 ml-0 md:absolute md:left-1/2 md:-translate-x-1/2 ${
-              entry.status === 'Menunggu' 
-                ? 'bg-error-container text-on-error-container' 
-                : 'bg-secondary-container text-primary'
-            }`}>
-              {entry.status === 'Menunggu' ? <Clock className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
+      <div className="bg-surface-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col mt-2">
+        <div className="overflow-x-auto">
+          {logbooks.length === 0 ? (
+            <div className="p-12 text-center flex flex-col items-center">
+              <FileText size={48} className="text-outline mb-4 opacity-50" />
+              <p className="font-body-lg text-on-surface">Belum ada aktivitas</p>
+              <p className="font-body-md text-secondary mt-1">Mahasiswa belum mengunggah kegiatan harian mereka.</p>
             </div>
+          ) : (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-surface-container-lowest border-b border-outline-variant text-on-surface-variant text-sm font-medium">
+                  <th className="py-4 px-5 w-1/4">Mahasiswa</th>
+                  <th className="py-4 px-5 w-1/4">Waktu</th>
+                  <th className="py-4 px-5">Ringkasan Kegiatan</th>
+                  <th className="py-4 px-5 text-center">Status</th>
+                  <th className="py-4 px-5 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant">
+                {logbooks.map((log) => {
+                  const statusUi = formatStatus(log.status_instansi);
+                  
+                  return (
+                    <tr key={log.id} className="hover:bg-surface-container-lowest/50 transition-colors">
+                      <td className="py-4 px-5 align-top">
+                        <div className="font-medium text-on-surface">{log.mahasiswa.name}</div>
+                        <div className="text-sm text-secondary">{log.mahasiswa.nim}</div>
+                      </td>
+                      <td className="py-4 px-5 align-top">
+                        <div className="font-medium text-on-surface">{log.tanggal}</div>
+                        <div className="text-xs text-secondary mt-1">
+                          {log.jam_mulai?.substring(0,5)} - {log.jam_selesai?.substring(0,5)}
+                        </div>
+                      </td>
+                      <td className="py-4 px-5 align-top">
+                        <p className="text-sm text-on-surface line-clamp-2">{log.deskripsi}</p>
+                        {log.path_foto && (
+                          <div className="inline-flex items-center gap-1 mt-2 text-xs text-primary bg-primary-container px-2 py-0.5 rounded-full">
+                            <ImageIcon size={12} /> Ada Lampiran Foto
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-4 px-5 align-top text-center">
+                        <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${statusUi.color}`}>
+                          {statusUi.label}
+                        </span>
+                      </td>
+                      <td className="py-4 px-5 align-top text-center">
+                        <button 
+                          onClick={() => openValidationModal(log)}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                            log.status_instansi === 'menunggu'
+                              ? 'bg-primary-container text-on-primary-container hover:bg-primary hover:text-on-primary'
+                              : 'border border-outline-variant text-secondary hover:bg-surface-container'
+                          }`}
+                        >
+                          {log.status_instansi === 'menunggu' ? 'Validasi' : 'Ubah Data'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
 
-            {/* Content Card */}
-            <div className={`w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] bg-surface-lowest p-6 rounded-xl border border-outline-variant shadow-sm ml-4 md:ml-0 relative transition-all duration-300 ${
-              entry.status === 'Disetujui' ? 'opacity-80 hover:opacity-100' : ''
-            }`}>
-              {/* Arrow */}
-              <div className={`absolute top-6 -left-3 md:top-1/2 md:-translate-y-1/2 w-3 h-3 bg-surface-lowest border-t border-l border-outline-variant rotate-[-45deg] ${
-                index % 2 !== 0 ? 'md:left-auto md:-right-3 md:border-t-0 md:border-l-0 md:border-b md:border-r' : 'md:-left-3'
-              }`}></div>
-              
-              <div className="flex justify-between items-start mb-3">
+      <Modal show={isModalOpen} onClose={closeModal} maxWidth="2xl">
+        <div className="p-0">
+          <div className="p-6 border-b border-outline-variant flex items-center justify-between">
+            <h2 className="text-xl font-display font-semibold text-on-surface">Validasi Kegiatan Harian</h2>
+            <button onClick={closeModal} className="text-on-surface-variant hover:bg-surface-container p-1 rounded-full transition-colors">
+              <X size={20} />
+            </button>
+          </div>
+
+          <form onSubmit={submitValidation} className="p-6">
+            {selectedLogbook && (
+              <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-lg font-display font-semibold text-on-surface">{entry.title}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <time className="text-xs text-on-surface-variant">{entry.date}</time>
-                    {entry.time && (
-                      <>
-                        <span className="text-xs text-outline">•</span>
-                        <span className="text-xs text-on-surface-variant">{entry.time}</span>
-                      </>
+                  <h3 className="text-sm font-semibold text-on-surface-variant mb-2">Informasi Kegiatan</h3>
+                  <div className="bg-surface-lowest border border-outline-variant rounded-lg p-4 space-y-3">
+                    <div>
+                      <div className="text-xs text-secondary">Pelaksana</div>
+                      <div className="text-sm font-medium">{selectedLogbook.mahasiswa.name}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-secondary">Waktu Pelaksanaan</div>
+                      <div className="text-sm font-medium">{selectedLogbook.tanggal} ({selectedLogbook.jam_mulai?.substring(0,5)} - {selectedLogbook.jam_selesai?.substring(0,5)})</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-secondary mb-1">Deskripsi Kegiatan</div>
+                      <p className="text-sm leading-relaxed text-on-surface bg-surface-container-lowest p-2 border border-outline-variant rounded">
+                        {selectedLogbook.deskripsi}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-semibold text-on-surface-variant mb-2">Bukti Lampiran</h3>
+                  <div className="bg-surface-lowest border border-outline-variant rounded-lg p-2 h-[200px] flex items-center justify-center overflow-hidden">
+                    {selectedLogbook.path_foto ? (
+                      <img 
+                        src={`/storage/${selectedLogbook.path_foto}`} 
+                        alt="Bukti Logbook" 
+                        className="object-cover w-full h-full rounded"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center text-secondary opacity-60">
+                        <ImageIcon size={32} className="mb-2" />
+                        <span className="text-sm">Tidak ada lampiran foto</span>
+                      </div>
                     )}
                   </div>
                 </div>
-                {entry.status === 'Menunggu' ? (
-                  <span className="px-2 py-1 bg-error-container text-on-error-container text-[10px] font-bold rounded-md uppercase tracking-wider">Menunggu</span>
-                ) : (
-                  <span className="px-2 py-1 bg-surface-high text-on-surface text-[10px] font-bold rounded-md uppercase tracking-wider flex items-center gap-1">
-                    <Check className="w-3 h-3" /> Disetujui
-                  </span>
-                )}
               </div>
-              
-              <p className="text-sm text-on-surface-variant mb-4">{entry.description}</p>
-              
-              {entry.imageUrl && (
-                <div className="mb-4 rounded-lg overflow-hidden border border-outline-variant bg-surface-low aspect-video">
-                  <img src={entry.imageUrl} alt="Dokumentasi" className="w-full h-full object-cover" />
-                </div>
-              )}
+            )}
 
-              {/* Rating (for approved entries) */}
-              {entry.status === 'Disetujui' && entry.rating && (
-                <div className="flex items-center gap-1 mb-3">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                      key={star}
-                      className={`w-4 h-4 ${star <= entry.rating! ? 'text-yellow-500 fill-yellow-500' : 'text-outline'}`}
+            <div className="space-y-5 bg-surface-container-lowest border border-outline-variant rounded-xl p-5 mb-6">
+              <div>
+                <label className="block text-sm font-semibold text-on-surface mb-3">Keputusan Pembimbing Lapangan</label>
+                <div className="flex flex-wrap gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="status_instansi"
+                      value="disetujui"
+                      checked={data.status_instansi === 'disetujui'}
+                      onChange={(e) => setData('status_instansi', e.target.value)}
+                      className="w-4 h-4 text-primary focus:ring-primary border-outline"
                     />
-                  ))}
-                  <span className="text-xs text-on-surface-variant ml-1">({entry.rating}/5)</span>
+                    <span className="text-sm text-on-surface flex items-center gap-1.5 font-medium">
+                      <CheckCircle2 size={16} className="text-green-600" /> Disetujui
+                    </span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="status_instansi"
+                      value="revisi"
+                      checked={data.status_instansi === 'revisi'}
+                      onChange={(e) => setData('status_instansi', e.target.value)}
+                      className="w-4 h-4 text-error focus:ring-error border-outline"
+                    />
+                    <span className="text-sm text-on-surface flex items-center gap-1.5 font-medium">
+                      <XCircle size={16} className="text-error" /> Perlu Direvisi
+                    </span>
+                  </label>
                 </div>
-              )}
+              </div>
 
-              {/* Actions or Feedback */}
-              {entry.status === 'Menunggu' ? (
-                <div className="mt-4 pt-4 border-t border-outline-variant flex flex-col gap-3">
-                  <textarea 
-                    className="w-full bg-surface-low border border-outline-variant rounded-lg p-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-shadow placeholder:text-outline resize-none"
-                    placeholder="Berikan komentar atau catatan untuk mahasiswa..."
-                    rows={2}
-                  ></textarea>
-
-                  {/* Rating Input */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-on-surface-variant">Penilaian Kinerja:</span>
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button key={star} className="p-0.5 hover:scale-110 transition-transform">
-                          <Star className="w-5 h-5 text-outline hover:text-yellow-500 hover:fill-yellow-500 transition-colors" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end gap-2">
-                    <button className="px-4 py-2 border border-error text-error rounded-lg hover:bg-error-container transition-colors text-xs font-medium">Revisi</button>
-                    <button className="px-4 py-2 bg-primary text-on-primary rounded-lg hover:opacity-90 transition-colors text-xs font-medium shadow-sm">Setujui & Simpan</button>
-                  </div>
-                </div>
-              ) : entry.feedback ? (
-                <div className="mt-4 p-3 bg-surface-low rounded-lg border border-outline-variant">
-                  <div className="flex items-center gap-2 mb-1">
-                    <MessageSquare className="w-4 h-4 text-primary" />
-                    <span className="text-xs font-semibold text-on-surface">Komentar Supervisor:</span>
-                  </div>
-                  <p className="text-sm text-on-surface-variant italic">{entry.feedback}</p>
-                </div>
-              ) : null}
+              <div>
+                <label htmlFor="catatan_instansi" className="block text-sm font-semibold text-on-surface mb-2">
+                  Catatan / Masukan (Opsional)
+                </label>
+                <textarea
+                  id="catatan_instansi"
+                  rows={3}
+                  value={data.catatan_instansi}
+                  onChange={(e) => setData('catatan_instansi', e.target.value)}
+                  placeholder="Berikan saran atau instruksi jika mahasiswa perlu memperbaiki kegiatan..."
+                  className="w-full p-3 bg-surface border border-outline-variant rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-y"
+                ></textarea>
+                {errors.catatan_instansi && <p className="text-error text-xs mt-1">{errors.catatan_instansi}</p>}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
 
-      <div className="mt-8 flex justify-center">
-        <button className="px-6 py-2 border border-outline-variant text-on-surface rounded-full hover:bg-surface-high transition-colors text-sm font-medium shadow-sm">
-          Muat Lebih Banyak
-        </button>
-      </div>
+            <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="px-4 py-2 border border-outline text-secondary text-sm font-medium rounded-lg hover:bg-surface-container transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={processing}
+                className="px-6 py-2 bg-primary text-on-primary text-sm font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors shadow-sm"
+              >
+                {processing ? 'Menyimpan...' : 'Simpan Validasi'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </Modal>
     </div>
   );
 }
 
-LogbookScreen.layout = (page: React.ReactNode) => <InstansiLayout>{page}</InstansiLayout>;
+InstansiLogbookScreen.layout = (page: React.ReactNode) => <InstansiLayout>{page}</InstansiLayout>;

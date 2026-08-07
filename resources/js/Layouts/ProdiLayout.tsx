@@ -66,6 +66,10 @@ export default function ProdiLayout({ children }: PropsWithChildren) {
                 </nav>
 
                 <div className="px-4 mt-auto py-4 border-t border-outline-variant space-y-1">
+                    <Link href={route('profile.edit')} className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-secondary hover:bg-surface-container-high hover:pl-5 transition-all duration-200 cursor-pointer border-l-4 border-transparent">
+                        <Users size={20} />
+                        <span className="font-body-md text-body-md">Profil Saya</span>
+                    </Link>
                     <button className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-secondary hover:bg-surface-container-high hover:pl-5 transition-all duration-200 cursor-pointer border-l-4 border-transparent">
                         <Settings size={20} />
                         <span className="font-body-md text-body-md">Pengaturan</span>

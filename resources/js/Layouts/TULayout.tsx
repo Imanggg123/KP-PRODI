@@ -9,7 +9,8 @@ export default function TULayout({ children }: PropsWithChildren) {
 
     const navItems = [
         { href: '/tu/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/tu/generate-surat', label: 'Surat Pengantar', icon: FileText, alsoActive: '/tu/verifikasi' },
+        { href: '/tu/generate-surat', label: 'Surat Pengantar', icon: FileText },
+        { href: '/tu/surat-balasan', label: 'Surat Balasan', icon: FileSignature },
         { href: '/tu/mahasiswa', label: 'Daftar Mahasiswa', icon: Users },
     ];
 
@@ -53,6 +54,13 @@ export default function TULayout({ children }: PropsWithChildren) {
                             </Link>
                         );
                     })}
+                    <Link
+                        href={route('profile.edit')}
+                        className="flex items-center w-full px-4 py-2.5 rounded-lg text-secondary hover:bg-secondary-container/20 hover:text-primary transition-colors text-left outline-none"
+                    >
+                        <span className="mr-3"><Users size={20} /></span>
+                        <span className="text-sm font-medium">Profil Saya</span>
+                    </Link>
                     <Link
                         href="/logout"
                         method="post"

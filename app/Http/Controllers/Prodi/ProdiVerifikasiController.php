@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\TU;
+namespace App\Http\Controllers\Prodi;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pendaftaran;
@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class TUVerifikasiController extends Controller
+class ProdiVerifikasiController extends Controller
 {
     public function index(): Response
     {
@@ -17,11 +17,12 @@ class TUVerifikasiController extends Controller
             'instansi',
             'dokumenPendaftarans',
         ])
-        ->where('status', 'diajukan')
+        // ->whereIn('status', ['diajukan', 'menunggu_verifikasi', 'pending'])
+        ->where('status', '!=', 'draft') // Menangkap semua status kecuali draft
         ->latest()
         ->get();
 
-        return Inertia::render('TU/Verifikasi', [
+        return Inertia::render('Prodi/Verifikasi/Index', [
             'pendaftarans' => $pendaftarans,
         ]);
     }
@@ -29,21 +30,21 @@ class TUVerifikasiController extends Controller
     public function approve(Pendaftaran $pendaftaran)
     {
         $pendaftaran->update([
-            'status' => 'verifikasi_tu',
+            'status' => 'plotting_dosen', // Langsung dilempar ke antrean dosen pembimbing
             'diverifikasi_oleh' => auth()->id(),
             'diverifikasi_pada' => now(),
         ]);
 
         return back()->with(
             'success',
-            'Pendaftaran berhasil diverifikasi.'
+            'Pendaftaran berhasil disetujui dan masuk antrean pembagian Dosbing.'
         );
     }
 
     public function reject(Request $request, Pendaftaran $pendaftaran)
     {
         $request->validate([
-            'catatan_tu' => 'required'
+            'catatan_tu' => 'required' // Still saving to catatan_tu to avoid migration, or we can use it as general notes. Wait, I should use catatan_tu as is.
         ]);
 
         $pendaftaran->update([

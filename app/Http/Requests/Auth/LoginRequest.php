@@ -50,6 +50,23 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        $user = Auth::user();
+        if ($user && $user->role === 'mahasiswa') {
+            if ($user->status_akun === 'pending') {
+                Auth::logout();
+                throw ValidationException::withMessages([
+                    'email' => 'Akun Anda sedang menunggu verifikasi dari Admin TU.',
+                ]);
+            }
+            
+            if ($user->status_akun === 'ditolak') {
+                Auth::logout();
+                throw ValidationException::withMessages([
+                    'email' => 'Akun Anda telah ditolak oleh Admin TU.',
+                ]);
+            }
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

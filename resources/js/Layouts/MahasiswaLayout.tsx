@@ -15,7 +15,9 @@ export default function MahasiswaLayout({ children }: PropsWithChildren) {
         { href: '/mahasiswa/pendaftaran', label: 'Pendaftaran', icon: ClipboardEdit },
         { href: '/mahasiswa/status-pengajuan', label: 'Status Pengajuan', icon: ClipboardCheck },
         { href: '/mahasiswa/surat-pengantar', label: 'Surat Pengantar', icon: FileText },
+        { href: '/mahasiswa/surat-balasan', label: 'Surat Balasan', icon: CalendarDays },
         { href: '/mahasiswa/proposal', label: 'Proposal', icon: File },
+        { href: '/mahasiswa/logbook', label: 'Monitoring', icon: BookOpen },
         { href: '/mahasiswa/berita-acara', label: 'Berita Acara', icon: FileClock },
         { href: '/mahasiswa/penilaian-akhir', label: 'Penilaian Akhir', icon: Award },
     ];
@@ -93,6 +95,13 @@ export default function MahasiswaLayout({ children }: PropsWithChildren) {
                         <button className="p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant">
                             <Bell className="w-5 h-5" />
                         </button>
+                        <Link
+                            href={route('profile.edit')}
+                            className="p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant"
+                            title="Profil Saya"
+                        >
+                            <UserCircle className="w-5 h-5" />
+                        </Link>
                         <Link
                             href="/logout"
                             method="post"

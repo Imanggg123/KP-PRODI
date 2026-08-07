@@ -6,9 +6,9 @@ import { AlertTriangle, UploadCloud, MessageSquare, History, CheckCircle, Clock 
 const statusText: Record<string, string> = {
     draft: "Draft",
     diajukan: "Menunggu Verifikasi",
-    verifikasi_tu: "Sedang Diverifikasi TU",
+    verifikasi_tu: "Sedang Diverifikasi Admin Akademik/Prodi",
     perlu_perbaikan: "Perlu Perbaikan",
-    disetujui_tu: "Disetujui TU",
+    disetujui_tu: "Disetujui Admin Akademik/Prodi",
     surat_terbit: "Surat Pengantar Terbit",
     diterima_instansi: "Diterima Instansi",
     aktif: "Kerja Praktik Berlangsung",
@@ -61,8 +61,8 @@ export default function StatusPengajuan() {
                 <span className="px-4 py-1 bg-error-container text-error text-label-sm font-bold rounded-full uppercase tracking-wider">{statusText[pendaftaran.status] ?? pendaftaran.status}</span>
               </div>
               <div className="p-4 bg-surface-container-low rounded-lg border border-outline-variant/30">
-                <p className="text-label-md text-on-surface mb-1">Catatan Admin Tata Usaha:</p>
-                <p className="text-body-md text-secondary">{pendaftaran.catatan_tu ?? "Belum ada catatan dari Tata Usaha."}</p>
+                <p className="text-label-md text-on-surface mb-1">Catatan Admin Akademik/Prodi:</p>
+                <p className="text-body-md text-secondary">{pendaftaran.catatan_tu ?? "Belum ada catatan dari Admin Akademik/Prodi."}</p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3">
                 {pendaftaran.status === "perlu_perbaikan" && (

@@ -1,4 +1,4 @@
-﻿import ProdiLayout from '@/Layouts/ProdiLayout';
+import ProdiLayout from '@/Layouts/ProdiLayout';
 import { 
   Download, 
   Plus, 
@@ -9,43 +9,23 @@ import {
   ChevronRight 
 } from 'lucide-react';
 
-const DUMMY_DATA = [
-  {
-    id: 'AB',
-    name: 'Dr. Andi Budianto, S.T., M.Kom.',
-    nip: 'NIP: 198005122005011002',
-    color: 'bg-primary-fixed text-on-primary-fixed',
-    field: 'Rekayasa Perangkat Lunak',
-    quota: '4 / 10',
-    status: 'Aktif',
-    statusStyle: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]',
-    indicatorColor: 'bg-primary'
-  },
-  {
-    id: 'CS',
-    name: 'Citra Sari, S.Kom., M.T.',
-    nip: 'NIDN: 0715088502',
-    color: 'bg-secondary-fixed text-on-secondary-fixed',
-    field: 'Kecerdasan Buatan, Data Mining',
-    quota: '8 / 10',
-    status: 'Aktif',
-    statusStyle: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]',
-    indicatorColor: 'bg-outline'
-  },
-  {
-    id: 'DP',
-    name: 'Dian Pratama, M.Sc.',
-    nip: 'NIP: 198511202010121005',
-    color: 'bg-surface-container-highest text-secondary',
-    field: 'Jaringan & Keamanan Komputer',
-    quota: 'N/A',
-    status: 'Cuti Studi',
-    statusStyle: 'bg-surface-variant text-on-surface-variant border-outline-variant',
-    inactive: true
-  }
-];
+interface Lecturer {
+  id: string;
+  name: string;
+  nip: string;
+  field: string;
+  quota: string;
+  status: string;
+  statusStyle: string;
+  indicatorColor: string;
+  inactive?: boolean;
+}
 
-export default function LecturerDatabase() {
+interface Props {
+  lecturers: Lecturer[];
+}
+
+export default function LecturerDatabase({ lecturers = [] }: Props) {
   return (
     <div className="p-4 md:p-8 max-w-[1200px] mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
@@ -109,11 +89,11 @@ export default function LecturerDatabase() {
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-variant font-body-md text-body-md">
-              {DUMMY_DATA.map((lecturer, i) => (
+              {lecturers.map((lecturer, i) => (
                 <tr key={i} className={`hover:bg-surface-bright transition-colors group ${lecturer.inactive ? 'opacity-75' : ''}`}>
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold font-headline-sm shrink-0 ${lecturer.color}`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold font-headline-sm shrink-0 bg-primary/10 text-primary`}>
                         {lecturer.id}
                       </div>
                       <div>
@@ -155,7 +135,7 @@ export default function LecturerDatabase() {
         </div>
         
         <div className="p-4 border-t border-surface-variant flex flex-col sm:flex-row items-center justify-between text-sm text-secondary bg-surface-container-lowest gap-4">
-          <div>Menampilkan 1 - 3 dari 45 Dosen</div>
+          <div>Menampilkan {lecturers.length} Dosen</div>
           <div className="flex items-center gap-2">
             <button className="p-1 rounded hover:bg-surface-variant disabled:opacity-50" disabled>
               <ChevronLeft size={20} />

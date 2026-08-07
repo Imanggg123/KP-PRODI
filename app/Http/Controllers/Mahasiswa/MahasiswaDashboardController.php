@@ -186,16 +186,16 @@ class MahasiswaDashboardController extends Controller
                 'description' => 'Pendaftaran Anda masih dalam bentuk draft. Lengkapi dan kirimkan untuk diproses.',
             ],
             'diajukan' => [
-                'label' => 'Menunggu Verifikasi',
-                'description' => 'Pendaftaran telah diajukan dan sedang menunggu verifikasi dari Tata Usaha.',
+                'label' => 'Menunggu Verifikasi Prodi',
+                'description' => 'Pendaftaran telah diajukan dan sedang menunggu verifikasi dari Koordinator Program Studi.',
             ],
             'verifikasi_tu' => [
-                'label' => 'Sedang Diverifikasi TU',
-                'description' => 'Berkas pendaftaran sedang dalam proses verifikasi oleh Tata Usaha.',
+                'label' => 'Menunggu Surat Pengantar',
+                'description' => 'Pendaftaran telah disetujui Prodi. Menunggu penerbitan Surat Pengantar oleh Tata Usaha.',
             ],
             'perlu_perbaikan' => [
                 'label' => 'Perlu Perbaikan',
-                'description' => 'Berkas pendaftaran memerlukan perbaikan. Periksa catatan dari TU.',
+                'description' => 'Berkas pendaftaran memerlukan perbaikan. Periksa catatan penolakan.',
             ],
             'disetujui_tu' => [
                 'label' => 'Menunggu Surat Pengantar',

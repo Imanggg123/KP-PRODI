@@ -1,160 +1,234 @@
-﻿import ProdiLayout from '@/Layouts/ProdiLayout';
-import { Search, SlidersHorizontal, Edit2, Save, X, Plus, AlertCircle } from 'lucide-react';
+import ProdiLayout from '@/Layouts/ProdiLayout';
 import { useState } from 'react';
+import { useForm } from '@inertiajs/react';
+import { Settings, Search, Users, AlertCircle, TrendingUp, Edit2 } from 'lucide-react';
+import Modal from '@/Components/Modal';
 
-const INITIAL_DATA = [
-  { id: 'AB', name: 'Dr. Andi Budianto, S.T., M.Kom.', current: 4, max: 10, nip: 'NIP: 198005122005011002' },
-  { id: 'CS', name: 'Citra Sari, S.Kom., M.T.', current: 8, max: 10, nip: 'NIDN: 0715088502' },
-  { id: 'RF', name: 'Rina Fitriana, S.Kom., M.Cs.', current: 9, max: 10, nip: 'NIP: 198210102008122001' },
-  { id: 'BS', name: 'Prof. Dr. Ir. Budi Santoso', current: 10, max: 10, nip: 'NIP: 197001011995121001' },
-];
+interface Dosen {
+  id: number;
+  name: string;
+  email: string;
+  kuota_max: number;
+  mahasiswa_dibimbing: number;
+}
 
-export default function QuotaManagement() {
-  const [data, setData] = useState(INITIAL_DATA);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState<number>(10);
+interface Props {
+  dosens: Dosen[];
+}
 
-  const startEdit = (id: string, max: number) => {
-    setEditingId(id);
-    setEditValue(max);
+export default function QuotaManagement({ dosens }: Props) {
+  const [search, setSearch] = useState('');
+  const [selectedDosen, setSelectedDosen] = useState<Dosen | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const { data, setData, put, processing, reset, errors } = useForm({
+    kuota_max: 10,
+  });
+
+  const filteredDosens = dosens.filter(d => 
+    d.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalKapasitas = dosens.reduce((acc, curr) => acc + curr.kuota_max, 0);
+  const totalTerisi = dosens.reduce((acc, curr) => acc + curr.mahasiswa_dibimbing, 0);
+  const persentaseGlobal = totalKapasitas > 0 ? (totalTerisi / totalKapasitas) * 100 : 0;
+
+  const openModal = (dosen: Dosen) => {
+    setSelectedDosen(dosen);
+    setData('kuota_max', dosen.kuota_max);
+    setIsModalOpen(true);
   };
 
-  const saveEdit = (id: string) => {
-    setData(data.map(item => item.id === id ? { ...item, max: editValue } : item));
-    setEditingId(null);
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setTimeout(() => {
+      setSelectedDosen(null);
+      reset();
+    }, 200);
   };
 
-  const cancelEdit = () => {
-    setEditingId(null);
+  const submitQuota = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedDosen) return;
+
+    put(route('prodi.quota.update', selectedDosen.id), {
+      onSuccess: () => closeModal(),
+    });
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-[1200px] mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h2 className="font-headline-lg text-headline-lg text-on-surface mb-2">Manajemen Kuota</h2>
-          <p className="text-on-surface-variant font-body-md text-body-md">Atur batas maksimal mahasiswa bimbingan untuk setiap dosen.</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="bg-primary text-on-primary px-5 py-2 rounded-lg hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm flex items-center gap-2 font-label-md text-label-md">
-            <SlidersHorizontal size={18} />
-            Penyesuaian Massal
-          </button>
+          <h1 className="text-3xl font-display font-semibold text-on-surface">Manajemen Kuota Dosen</h1>
+          <p className="text-on-surface-variant mt-1">Pantau dan atur batas maksimal bimbingan untuk setiap dosen pembimbing.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shrink-0">
-            <SlidersHorizontal size={24} />
+      {/* Global Quota Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2 bg-surface-lowest rounded-2xl border border-outline-variant shadow-sm p-6 flex flex-col justify-center">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-semibold text-on-surface flex items-center gap-2"><TrendingUp size={18} className="text-primary"/> Tingkat Keterisian Global</h3>
+            <span className="text-sm font-bold text-primary">{persentaseGlobal.toFixed(1)}%</span>
           </div>
-          <div>
-            <p className="font-label-md text-label-md text-secondary">Rata-rata Kuota</p>
-            <p className="font-headline-md text-headline-md text-on-surface">10 <span className="text-sm font-normal text-outline">mahasiswa/dosen</span></p>
+          <div className="w-full bg-surface-variant rounded-full h-4 mb-2 overflow-hidden">
+            <div 
+              className={`h-4 rounded-full transition-all duration-1000 ${
+                persentaseGlobal > 90 ? 'bg-error' : persentaseGlobal > 75 ? 'bg-warning' : 'bg-primary'
+              }`} 
+              style={{ width: `${Math.min(persentaseGlobal, 100)}%` }}
+            ></div>
+          </div>
+          <div className="flex justify-between text-xs text-on-surface-variant">
+            <span>{totalTerisi} Mahasiswa Terploting</span>
+            <span>Kapasitas Maks: {totalKapasitas}</span>
           </div>
         </div>
-        <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-error-container text-on-error-container flex items-center justify-center shrink-0">
-            <AlertCircle size={24} />
+
+        <div className="bg-primary-container text-on-primary-container rounded-2xl p-6 flex flex-col items-start justify-center">
+          <div className="p-3 bg-on-primary-container/10 rounded-xl mb-3">
+            <Users size={24} />
           </div>
-          <div>
-            <p className="font-label-md text-label-md text-secondary">Dosen Kuota Penuh</p>
-            <p className="font-headline-md text-headline-md text-on-surface">1 <span className="text-sm font-normal text-outline">dosen</span></p>
-          </div>
+          <div className="text-3xl font-display font-bold mb-1">{dosens.length}</div>
+          <div className="text-sm font-medium opacity-90">Total Dosen Pembimbing Aktif</div>
         </div>
-        <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shrink-0">
-            <Search size={24} />
-          </div>
-          <div className="w-full">
+      </div>
+
+      {/* Data Table */}
+      <div className="bg-surface-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
+        <div className="p-4 border-b border-outline-variant bg-surface-container-lowest flex justify-between items-center">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
             <input 
-              type="text" 
-              placeholder="Cari dosen..." 
-              className="w-full bg-transparent border-b border-outline-variant focus:border-primary outline-none py-1 font-body-md text-body-md text-on-surface"
+              type="text"
+              placeholder="Cari nama dosen..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-surface rounded-lg border border-outline-variant text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
             />
           </div>
         </div>
-      </div>
 
-      <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-surface-container-low border-b border-outline-variant text-secondary font-label-md text-label-md uppercase tracking-wider">
-                <th className="p-4 font-semibold whitespace-nowrap">Nama Dosen & NIP/NIDN</th>
-                <th className="p-4 font-semibold whitespace-nowrap">Keterisian Kuota</th>
-                <th className="p-4 font-semibold whitespace-nowrap">Batas Maksimal</th>
-                <th className="p-4 font-semibold text-right whitespace-nowrap">Aksi</th>
+              <tr className="bg-surface-container-lowest border-b border-outline-variant text-on-surface-variant text-sm font-medium">
+                <th className="py-4 px-5">Nama Dosen</th>
+                <th className="py-4 px-5">Beban Bimbingan (Saat Ini)</th>
+                <th className="py-4 px-5 text-center">Batas Kuota</th>
+                <th className="py-4 px-5 text-center">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-surface-variant font-body-md text-body-md">
-              {data.map((lecturer) => {
-                const percentage = (lecturer.current / lecturer.max) * 100;
-                let barColor = 'bg-primary';
-                if (percentage >= 90) barColor = 'bg-error';
-                else if (percentage >= 70) barColor = 'bg-[#fbbc04]'; // Warning color
+            <tbody className="divide-y divide-outline-variant">
+              {filteredDosens.map((dosen) => {
+                const percentage = dosen.kuota_max > 0 ? (dosen.mahasiswa_dibimbing / dosen.kuota_max) * 100 : 0;
+                const isOverloaded = percentage >= 100;
+                const isWarning = percentage >= 80 && !isOverloaded;
 
                 return (
-                  <tr key={lecturer.id} className="hover:bg-surface-bright transition-colors group">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-surface-container-highest text-secondary flex items-center justify-center font-bold font-headline-sm shrink-0">
-                          {lecturer.id}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-on-surface whitespace-nowrap">{lecturer.name}</p>
-                          <p className="text-secondary text-sm whitespace-nowrap">{lecturer.nip}</p>
-                        </div>
+                  <tr key={dosen.id} className="hover:bg-surface-container-lowest/50 transition-colors">
+                    <td className="py-4 px-5 align-middle">
+                      <div className="font-medium text-on-surface flex items-center gap-2">
+                        {dosen.name}
+                        {isOverloaded && <AlertCircle size={14} className="text-error" title="Kuota Penuh" />}
+                      </div>
+                      <div className="text-sm text-secondary">{dosen.email}</div>
+                    </td>
+                    <td className="py-4 px-5 align-middle w-1/3">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="font-medium text-on-surface">{dosen.mahasiswa_dibimbing} Mahasiswa</span>
+                        <span className="text-secondary">{percentage.toFixed(0)}%</span>
+                      </div>
+                      <div className="w-full bg-surface-variant rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${
+                            isOverloaded ? 'bg-error' : isWarning ? 'bg-warning' : 'bg-primary'
+                          }`} 
+                          style={{ width: `${Math.min(percentage, 100)}%` }}
+                        ></div>
                       </div>
                     </td>
-                    <td className="p-4 min-w-[200px]">
-                      <div className="flex items-center gap-3">
-                        <div className="w-full h-2 bg-surface-variant rounded-full overflow-hidden">
-                          <div className={`h-full ${barColor}`} style={{ width: `${percentage}%` }}></div>
-                        </div>
-                        <span className="font-label-md text-label-md text-on-surface-variant whitespace-nowrap">
-                          {lecturer.current} / {lecturer.max}
-                        </span>
+                    <td className="py-4 px-5 align-middle text-center">
+                      <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-surface-container-highest font-bold text-on-surface">
+                        {dosen.kuota_max}
                       </div>
                     </td>
-                    <td className="p-4">
-                      {editingId === lecturer.id ? (
-                        <div className="flex items-center gap-2">
-                          <input 
-                            type="number" 
-                            min={lecturer.current} 
-                            value={editValue} 
-                            onChange={(e) => setEditValue(parseInt(e.target.value) || 0)}
-                            className="w-20 px-2 py-1 border border-primary rounded bg-surface focus:outline-none focus:ring-1 focus:ring-primary text-center font-body-md"
-                          />
-                        </div>
-                      ) : (
-                        <span className="font-body-md text-on-surface px-2">{lecturer.max}</span>
-                      )}
-                    </td>
-                    <td className="p-4 text-right">
-                      {editingId === lecturer.id ? (
-                        <div className="flex justify-end gap-1">
-                          <button onClick={() => saveEdit(lecturer.id)} className="text-[#137333] hover:bg-[#e6f4ea] transition-colors p-2 rounded-full">
-                            <Save size={18} />
-                          </button>
-                          <button onClick={cancelEdit} className="text-error hover:bg-error-container/50 transition-colors p-2 rounded-full">
-                            <X size={18} />
-                          </button>
-                        </div>
-                      ) : (
-                        <button onClick={() => startEdit(lecturer.id, lecturer.max)} className="text-secondary hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-container-highest">
-                          <Edit2 size={18} />
-                        </button>
-                      )}
+                    <td className="py-4 px-5 align-middle text-center">
+                      <button 
+                        onClick={() => openModal(dosen)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border border-outline text-on-surface hover:bg-surface-container transition-colors"
+                      >
+                        <Edit2 size={16} /> Atur Kuota
+                      </button>
                     </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+          {filteredDosens.length === 0 && (
+             <div className="p-12 text-center text-secondary">
+               Tidak ada dosen pembimbing yang ditemukan.
+             </div>
+          )}
         </div>
       </div>
+
+      <Modal show={isModalOpen} onClose={closeModal} maxWidth="md">
+        <form onSubmit={submitQuota} className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-display font-semibold text-on-surface">Atur Kuota Dosen</h2>
+          </div>
+
+          {selectedDosen && (
+            <div className="mb-6">
+              <div className="text-sm text-secondary mb-1">Nama Dosen</div>
+              <div className="font-medium text-on-surface bg-surface-container-lowest p-3 border border-outline-variant rounded-lg">
+                {selectedDosen.name}
+              </div>
+            </div>
+          )}
+
+          <div className="mb-8">
+            <label htmlFor="kuota_max" className="block text-sm font-semibold text-on-surface mb-2">
+              Batas Maksimal Mahasiswa Bimbingan
+            </label>
+            <div className="flex items-center gap-4">
+              <input
+                id="kuota_max"
+                type="number"
+                min="1"
+                max="50"
+                value={data.kuota_max}
+                onChange={(e) => setData('kuota_max', parseInt(e.target.value))}
+                className="w-full p-3 bg-surface border border-outline-variant rounded-lg text-lg text-center font-bold focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+              />
+              <div className="text-sm text-secondary whitespace-nowrap">
+                Mahasiswa / Periode
+              </div>
+            </div>
+            {errors.kuota_max && <p className="text-error text-xs mt-2">{errors.kuota_max}</p>}
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant">
+            <button
+              type="button"
+              onClick={closeModal}
+              className="px-4 py-2 border border-outline text-secondary text-sm font-medium rounded-lg hover:bg-surface-container transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              disabled={processing}
+              className="px-6 py-2 bg-primary text-on-primary text-sm font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors shadow-sm inline-flex items-center gap-2"
+            >
+              <Settings size={16} /> {processing ? 'Menyimpan...' : 'Simpan Kuota'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

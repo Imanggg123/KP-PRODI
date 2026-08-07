@@ -1,224 +1,154 @@
-﻿import ProdiLayout from '@/Layouts/ProdiLayout';
-import { useState } from 'react';
-import { Search, ChevronRight, Building2, UserPlus, Check, Ban, CheckCircle } from 'lucide-react';
+import ProdiLayout from '@/Layouts/ProdiLayout';
+import { useForm } from '@inertiajs/react';
 
-export default function SupervisorPlotting() {
-  const [selectedLecturer, setSelectedLecturer] = useState<string>('wahyudi');
+interface Mahasiswa {
+  id: number;
+  name: string;
+  nim: string;
+}
+
+interface Dosen {
+  id: number;
+  name: string;
+  kuota_max: number;
+  bimbingan_aktif: number;
+}
+
+interface Pendaftaran {
+  id: number;
+  mahasiswa: Mahasiswa;
+  dosen_pembimbing?: Dosen;
+}
+
+interface Props {
+  mahasiswaQueue: Pendaftaran[];
+  dosenList: Dosen[];
+  plottedHistory: Pendaftaran[];
+}
+
+export default function SupervisorPlotting({ mahasiswaQueue = [], dosenList = [], plottedHistory = [] }: Props) {
+  const { data, setData, post, processing, reset } = useForm({
+    pendaftaran_id: '',
+    dosen_id: '',
+  });
+
+  const submitPlotting = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!data.pendaftaran_id || !data.dosen_id) return;
+    
+    post(route('prodi.plotting.store'), {
+      onSuccess: () => reset()
+    });
+  };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden">
-      <header className="px-4 py-4 md:px-8 md:py-6 bg-surface-container-lowest border-b border-outline-variant shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h2 className="font-headline-lg text-headline-lg text-on-surface">Plotting Pembimbing</h2>
-          <p className="font-body-md text-body-md text-secondary mt-1">Alokasikan dosen pembimbing untuk mahasiswa yang menunggu.</p>
+          <h1 className="text-3xl font-display font-semibold text-on-surface">Plotting Dosen Pembimbing</h1>
+          <p className="text-on-surface-variant mt-1">Alokasikan dosen pembimbing untuk mahasiswa Kerja Praktik.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="bg-surface-container px-3 py-1.5 rounded-full flex items-center gap-2 border border-outline-variant">
-            <div className="w-2 h-2 rounded-full bg-primary"></div>
-            <span className="font-label-md text-label-md text-on-surface-variant">Periode Aktif: 2024/2025</span>
+      </div>
+
+      {/* Form Card */}
+      <div className="bg-surface-lowest rounded-2xl shadow-sm border border-outline-variant p-6 md:p-8">
+        <form onSubmit={submitPlotting} className="space-y-6 flex flex-col">
+          
+          {/* Mahasiswa Dropdown */}
+          <div className="flex flex-col">
+            <span className="text-red-500 text-sm font-medium mb-1 italic">
+              * nb : prodi tidak dapat menghapus atau menambah dosbing jika tgl pengajuan surat sudah lewat lebih dari 2 hari
+            </span>
+            <label className="text-on-surface font-semibold mb-2">Mahasiswa Kerja Praktek</label>
+            <select
+              value={data.pendaftaran_id}
+              onChange={(e) => setData('pendaftaran_id', e.target.value)}
+              className="border border-outline-variant rounded-lg p-3 bg-surface-lowest focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-on-surface"
+              required
+            >
+              <option value="">-- Pilih Mahasiswa --</option>
+              {mahasiswaQueue.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.mahasiswa.nim} - {p.mahasiswa.name}
+                </option>
+              ))}
+            </select>
           </div>
+
+          {/* Dosen Dropdown */}
+          <div className="flex flex-col">
+            <span className="text-red-500 text-sm font-medium mb-1 italic">
+              * nb : (batas angka) : dosen memiliki batas kuota
+            </span>
+            <label className="text-on-surface font-semibold mb-2">Dosen Pembimbing Kerja Praktek</label>
+            <select
+              value={data.dosen_id}
+              onChange={(e) => setData('dosen_id', e.target.value)}
+              className="border border-outline-variant rounded-lg p-3 bg-surface-lowest focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-on-surface"
+              required
+            >
+              <option value="">-- Pilih Dosen Pembimbing --</option>
+              {dosenList.map((d) => {
+                const sisa = d.kuota_max - d.bimbingan_aktif;
+                const disabled = sisa <= 0;
+                return (
+                  <option key={d.id} value={d.id} disabled={disabled}>
+                    {d.name} ( Sisa Kuota: {sisa < 0 ? 0 : sisa} )
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            disabled={processing || !data.pendaftaran_id || !data.dosen_id}
+            className="self-start px-8 py-3 bg-primary hover:bg-primary/90 text-on-primary font-semibold rounded-lg shadow-sm disabled:opacity-50 transition-colors"
+          >
+            {processing ? 'Menyimpan...' : 'Bagi'}
+          </button>
+        </form>
+      </div>
+
+      {/* History Table */}
+      <div className="bg-surface-lowest rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
+        <div className="p-6 border-b border-outline-variant">
+          <h3 className="text-lg font-display font-semibold text-on-surface">Riwayat Plotting Dosen Pembimbing</h3>
         </div>
-      </header>
-
-      <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
-        {/* Left Side: Student Queue */}
-        <section className="w-full lg:w-1/2 xl:w-2/5 h-1/2 lg:h-full overflow-y-auto border-b lg:border-b-0 lg:border-r border-outline-variant bg-surface-container-lowest flex flex-col">
-          <div className="p-4 md:p-6 border-b border-outline-variant sticky top-0 bg-surface-container-lowest z-10">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-headline-sm text-headline-sm text-on-surface">Antrean Mahasiswa</h3>
-              <span className="bg-secondary-container text-on-secondary-container font-label-md text-label-md px-2.5 py-1 rounded-full">48 Menunggu</span>
-            </div>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-outline" size={20} />
-              <input 
-                type="text" 
-                placeholder="Cari nama atau NIM..." 
-                className="w-full pl-10 pr-4 py-2 bg-surface rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow font-body-md text-body-md text-on-surface placeholder:text-outline"
-              />
-            </div>
-          </div>
-
-          <div className="p-4 space-y-3">
-            {/* Active Student Card */}
-            <div className="bg-surface-container-low border-l-4 border-primary rounded-r-xl border-y border-r border-outline-variant p-4 cursor-pointer shadow-sm relative overflow-hidden group">
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 transition-opacity">
-                <ChevronRight className="text-primary" size={24} />
-              </div>
-              <div className="flex items-start justify-between pr-8">
-                <div>
-                  <h4 className="font-headline-sm text-headline-sm text-on-surface">Ahmad Budi Santoso</h4>
-                  <p className="font-body-md text-body-md text-secondary">NIM: 200411100012 • Teknik Informatika</p>
-                  <div className="mt-2 flex gap-2 flex-wrap">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-surface-variant text-on-surface-variant border border-outline-variant">AI/ML</span>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-surface-variant text-on-surface-variant border border-outline-variant">Software Eng</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Inactive Student Card */}
-            <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 cursor-pointer hover:bg-surface-container-low transition-colors group">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h4 className="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">Siti Nurhaliza</h4>
-                  <p className="font-body-md text-body-md text-secondary">NIM: 200411100045 • Sistem Informasi</p>
-                  <div className="mt-2 flex gap-2 flex-wrap">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-surface-variant text-on-surface-variant border border-outline-variant">Data Science</span>
-                  </div>
-                </div>
-                <span className="font-label-md text-label-md text-outline">2 hari lalu</span>
-              </div>
-            </div>
-
-            {/* Inactive Student Card */}
-            <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 cursor-pointer hover:bg-surface-container-low transition-colors group">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h4 className="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">Bagus Dwi Cahyo</h4>
-                  <p className="font-body-md text-body-md text-secondary">NIM: 200411100088 • Teknik Industri</p>
-                  <div className="mt-2 flex gap-2 flex-wrap">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-surface-variant text-on-surface-variant border border-outline-variant">Optimization</span>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-surface-variant text-on-surface-variant border border-outline-variant">SCM</span>
-                  </div>
-                </div>
-                <span className="font-label-md text-label-md text-outline">3 hari lalu</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Right Side: Assignment Panel */}
-        <section className="w-full lg:w-1/2 xl:w-3/5 h-1/2 lg:h-full overflow-y-auto bg-surface p-4 md:p-6">
-          <div className="max-w-3xl mx-auto space-y-6 pb-8">
-            
-            <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-4 md:p-6">
-              <div className="flex flex-col sm:flex-row items-start gap-4">
-                <div className="w-16 h-16 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-headline-lg text-headline-lg shrink-0">
-                  AB
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-headline-md text-headline-md text-on-surface">Ahmad Budi Santoso</h3>
-                  <p className="font-body-md text-body-md text-secondary">200411100012 | Program Studi Teknik Informatika</p>
-                  
-                  <div className="mt-4 p-4 bg-surface-container-low rounded-lg border border-outline-variant">
-                    <h4 className="font-label-md text-label-md text-on-surface-variant uppercase mb-2">Topik Magang</h4>
-                    <p className="font-body-md text-body-md text-on-surface">Pengembangan Sistem Deteksi Penyakit Daun Jagung Menggunakan Convolutional Neural Network (CNN)</p>
-                    <div className="mt-3 flex items-center gap-2">
-                      <Building2 className="text-outline shrink-0" size={16} />
-                      <span className="font-body-md text-body-md text-secondary">PT. Inovasi AgriTech Nusantara, Surabaya</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-4 md:p-6">
-              <h3 className="font-headline-sm text-headline-sm text-on-surface mb-6 flex items-center gap-2">
-                <UserPlus className="text-primary shrink-0" size={24} />
-                Pilih Dosen Pembimbing
-              </h3>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block font-label-md text-label-md text-on-surface-variant mb-2">Filter Kompetensi</label>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <button className="px-3 py-1.5 rounded-full border border-primary bg-primary-container text-on-primary-container font-label-md text-label-md transition-colors">Cocok dengan Topik (AI/ML)</button>
-                    <button className="px-3 py-1.5 rounded-full border border-outline-variant bg-surface text-on-surface-variant font-label-md text-label-md hover:bg-surface-container transition-colors">Semua Dosen</button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Lecturer Option Card (Recommended) */}
-                  <label className="relative cursor-pointer group">
-                    <input 
-                      type="radio" 
-                      name="lecturer" 
-                      className="peer sr-only" 
-                      checked={selectedLecturer === 'wahyudi'}
-                      onChange={() => setSelectedLecturer('wahyudi')}
-                    />
-                    <div className="p-4 rounded-xl border-2 border-outline-variant bg-surface-container-lowest group-hover:border-primary-fixed-dim peer-checked:border-primary peer-checked:bg-surface transition-all">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="font-headline-sm text-headline-sm text-on-surface text-base">Dr. Wahyudi, S.T., M.Kom.</div>
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 ${selectedLecturer === 'wahyudi' ? 'border-primary bg-primary' : 'border-outline-variant'}`}>
-                          <Check size={14} className={`text-white transition-opacity ${selectedLecturer === 'wahyudi' ? 'opacity-100' : 'opacity-0'}`} />
-                        </div>
-                      </div>
-                      <p className="font-body-md text-body-md text-secondary text-sm mb-3">Keahlian: Artificial Intelligence, Computer Vision</p>
-                      
-                      <div className="flex items-center justify-between mt-auto">
-                        <span className="font-label-md text-label-md text-on-surface-variant">Kuota:</span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-16 h-2 bg-surface-variant rounded-full overflow-hidden">
-                            <div className="h-full bg-primary" style={{ width: '60%' }}></div>
-                          </div>
-                          <span className="font-label-md text-label-md text-on-surface">6/10</span>
-                        </div>
-                      </div>
-                      
-                      <div className="absolute top-0 right-0 transform translate-x-2 -translate-y-2">
-                        <span className="bg-tertiary-container text-on-tertiary-container text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">REKOMENDASI</span>
-                      </div>
-                    </div>
-                  </label>
-
-                  {/* Lecturer Option Card */}
-                  <label className="relative cursor-pointer group">
-                    <input 
-                      type="radio" 
-                      name="lecturer" 
-                      className="peer sr-only" 
-                      checked={selectedLecturer === 'rina'}
-                      onChange={() => setSelectedLecturer('rina')}
-                    />
-                    <div className="p-4 rounded-xl border-2 border-outline-variant bg-surface-container-lowest group-hover:border-primary-fixed-dim peer-checked:border-primary peer-checked:bg-surface transition-all h-full flex flex-col">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="font-headline-sm text-headline-sm text-on-surface text-base">Rina Fitriana, S.Kom., M.Cs.</div>
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 ${selectedLecturer === 'rina' ? 'border-primary bg-primary' : 'border-outline-variant'}`}>
-                          <Check size={14} className={`text-white transition-opacity ${selectedLecturer === 'rina' ? 'opacity-100' : 'opacity-0'}`} />
-                        </div>
-                      </div>
-                      <p className="font-body-md text-body-md text-secondary text-sm mb-3">Keahlian: Machine Learning, Data Mining</p>
-                      
-                      <div className="flex items-center justify-between mt-auto">
-                        <span className="font-label-md text-label-md text-on-surface-variant">Kuota:</span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-16 h-2 bg-surface-variant rounded-full overflow-hidden">
-                            <div className="h-full bg-error" style={{ width: '90%' }}></div>
-                          </div>
-                          <span className="font-label-md text-label-md text-on-surface">9/10</span>
-                        </div>
-                      </div>
-                    </div>
-                  </label>
-
-                  {/* Lecturer Option Card (Full) */}
-                  <div className="p-4 rounded-xl border-2 border-outline-variant bg-surface-variant opacity-60 h-full flex flex-col">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="font-headline-sm text-headline-sm text-on-surface text-base">Prof. Dr. Ir. Budi Santoso</div>
-                      <Ban className="text-error" size={18} />
-                    </div>
-                    <p className="font-body-md text-body-md text-secondary text-sm mb-3">Keahlian: Software Engineering, AI</p>
-                    <div className="flex items-center justify-between mt-auto">
-                      <span className="font-label-md text-label-md text-error font-medium">Kuota Penuh</span>
-                      <span className="font-label-md text-label-md text-on-surface">10/10</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-outline-variant flex flex-col sm:flex-row justify-end gap-3">
-                <button className="px-6 py-2 rounded-lg border border-outline text-secondary font-body-md text-body-md font-medium hover:bg-surface-container transition-colors w-full sm:w-auto text-center">
-                  Lewati Sementara
-                </button>
-                <button className="px-6 py-2 rounded-lg bg-primary text-on-primary font-body-md text-body-md font-medium hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm flex items-center justify-center gap-2 w-full sm:w-auto">
-                  <CheckCircle size={18} />
-                  Tetapkan Pembimbing
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[600px]">
+            <thead>
+              <tr className="bg-surface-variant text-on-surface-variant text-sm border-b border-outline-variant">
+                <th className="p-4 font-semibold w-32">NIM</th>
+                <th className="p-4 font-semibold">Nama Mahasiswa</th>
+                <th className="p-4 font-semibold">Dosen Pembimbing</th>
+                <th className="p-4 font-semibold text-center w-24">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {plottedHistory && plottedHistory.length > 0 ? (
+                plottedHistory.map((h, i) => (
+                  <tr key={h.id} className="border-b border-outline-variant/50 hover:bg-surface-container-lowest transition-colors">
+                    <td className="p-4 text-on-surface">{h.mahasiswa?.nim}</td>
+                    <td className="p-4 text-on-surface font-medium">{h.mahasiswa?.name}</td>
+                    <td className="p-4 text-on-surface">{h.dosen_pembimbing?.name || '-'}</td>
+                    <td className="p-4 text-center">
+                      <button className="text-primary hover:text-primary/80 font-medium text-sm px-3 py-1 bg-primary/10 hover:bg-primary/20 rounded-md transition-colors">
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-on-surface-variant">
+                    Belum ada riwayat plotting.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

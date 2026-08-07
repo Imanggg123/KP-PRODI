@@ -33,20 +33,27 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'nim' => 'required|string|max:255|unique:'.User::class,
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $prodi = \App\Models\ProgramStudi::where('kode', 'TI')->orWhere('nama', 'Teknik Informatika')->first();
+        $prodiId = $prodi ? $prodi->id : null;
+
         $user = User::create([
             'name' => $request->name,
+            'nim' => $request->nim,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => 'mahasiswa',
+            'status_akun' => 'pending',
+            'program_studi_id' => $prodiId,
         ]);
 
         event(new Registered($user));
 
-        Auth::login($user);
-
-        return redirect(route('dashboard', absolute: false));
+        // Redirect to login page instead of automatic login
+        return redirect()->route('login')->with('status', 'Pendaftaran berhasil. Akun Anda sedang menunggu verifikasi dari Admin TU sebelum dapat login.');
     }
 }

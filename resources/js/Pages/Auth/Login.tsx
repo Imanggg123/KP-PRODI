@@ -147,6 +147,15 @@ export default function Login({ status, canResetPassword }: { status?: string; c
                             </button>
                         </form>
 
+                        {/* Register Link */}
+                        <div className="mt-6 text-center">
+                            <p className="text-sm font-semibold text-slate-500">
+                                Belum punya akun?{' '}
+                                <Link href={route('register')} className="text-blue-600 hover:text-blue-700 hover:underline">
+                                    Daftar di sini
+                                </Link>
+                            </p>
+                        </div>
                         {/* Divider */}
                         <div className="relative flex items-center py-5">
                             <div className="flex-grow border-t border-slate-100"></div>

@@ -8,6 +8,7 @@ export default function InstansiLayout({ children }: PropsWithChildren) {
 
     const navItems = [
         { href: '/instansi/dashboard', label: 'Ringkasan', icon: LayoutDashboard },
+        { href: '/instansi/pendaftaran', label: 'Pendaftar', icon: Users },
         { href: '/instansi/evaluation', label: 'Penilaian', icon: BarChart2 },
         { href: '/instansi/logbook', label: 'Monitoring', icon: BookOpen },
         { href: '/instansi/settings', label: 'Pengaturan', icon: Settings },
@@ -52,6 +53,13 @@ export default function InstansiLayout({ children }: PropsWithChildren) {
 
                 {/* Footer Actions */}
                 <div className="mt-auto flex flex-col gap-4 border-t border-outline-variant pt-6">
+                    <Link
+                        href={route('profile.edit')}
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-all active:scale-95 duration-150 text-left w-full"
+                    >
+                        <Users size={20} />
+                        <span className="text-body-md">Profil Saya</span>
+                    </Link>
                     <Link
                         href="/logout"
                         method="post"

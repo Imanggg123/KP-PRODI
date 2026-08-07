@@ -71,6 +71,9 @@ class MahasiswaPendaftaranController extends Controller
         }
 
         DB::transaction(function () use ($user, $validated) {
+            $prodi = \App\Models\ProgramStudi::where('kode', 'TI')->orWhere('nama', 'Teknik Informatika')->first();
+            $prodiId = $prodi ? $prodi->id : null;
+
             // Update user profile fields
             $user->update([
                 'name' => $validated['name'],
@@ -79,6 +82,7 @@ class MahasiswaPendaftaranController extends Controller
                 'semester' => $validated['semester'],
                 'total_sks' => $validated['total_sks'],
                 'ipk' => $validated['ipk'],
+                'program_studi_id' => $user->program_studi_id ?? $prodiId,
             ]);
 
             // Find existing draft or create new pendaftaran (without instansi or duration)

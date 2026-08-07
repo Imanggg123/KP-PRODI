@@ -161,7 +161,7 @@ export default function Pendaftaran({ pendaftaran, flash }: PageProps<Pendaftara
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1">
                                 <label className="text-label-md text-on-surface-variant font-medium">Program Studi</label>
-                                <input type="text" readOnly value={user.program_studi?.nama || '-'} className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface-variant/30 text-secondary cursor-not-allowed outline-none" />
+                                <input type="text" readOnly value={user.program_studi?.nama || 'Teknik Informatika'} className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface-variant/30 text-secondary cursor-not-allowed outline-none" />
                             </div>
                             <div className="space-y-1">
                                 <label className="text-label-md text-on-surface-variant font-medium">Semester</label>

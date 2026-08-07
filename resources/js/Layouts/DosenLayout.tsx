@@ -97,6 +97,10 @@ export default function DosenLayout({ children }: PropsWithChildren) {
                             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
                         </button>
                         <div className="w-px h-6 bg-outline-variant mx-1"></div>
+                        <Link href={route('profile.edit')} className="flex items-center gap-2 px-3 py-1.5 hover:bg-surface-container-high rounded-lg transition-colors text-sm font-medium">
+                            <UserCircle className="w-4 h-4" />
+                            <span>Profil</span>
+                        </Link>
                         <Link href="/logout" method="post" as="button" className="flex items-center gap-2 px-3 py-1.5 hover:bg-surface-container-high rounded-lg transition-colors text-sm font-medium">
                             <span>Logout</span>
                         </Link>

@@ -26,6 +26,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'status_akun',
         'nim',
         'nip',
         'program_studi_id',
@@ -137,5 +138,14 @@ class User extends Authenticatable
     public function notifikasis(): HasMany
     {
         return $this->hasMany(Notifikasi::class);
+    }
+    /**
+     * Relasi untuk Dosen Pembimbing
+     * Menghubungkan Dosen (User) dengan mahasiswa bimbingannya di tabel pendaftarans
+     */
+    public function dibimbing()
+    {
+        // Sesuaikan 'App\Models\Pendaftaran' jika nama/path model pendaftaran Anda berbeda
+        return $this->hasMany(\App\Models\Pendaftaran::class, 'dosen_pembimbing_id');
     }
 }
